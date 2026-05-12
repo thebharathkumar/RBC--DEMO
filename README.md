@@ -10,9 +10,11 @@ This project models the foundation. It is a working prototype of internal toolin
 
 The architecture is deliberately conservative. Every claim in the output is traceable to a source hash. Every agent invocation is traced in Langfuse with token cost and latency. Every external dependency sits behind a retry policy and a circuit breaker. The goal is not to replace an analyst, it is to give one a defensible first draft.
 
-## Live demo
+## Status
 
-Production: https://rbc-research-platform.onrender.com
+Milestone 2 and 3 are live: the LangGraph pipeline runs end to end on one worker. `POST /runs` accepts a ticker, fans through `supervisor`, `market_data`, and `synthesizer` nodes, and returns a typed terminal state with citation hashes and cost accounting. The remaining workers (filings, earnings, news, comparables, critique) and the PDF renderer ship in milestones 4 through 6.
+
+Production: https://rbc-research-platform.onrender.com (not yet deployed)
 
 Demo walkthrough: pending.
 

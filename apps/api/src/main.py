@@ -21,6 +21,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from src import __version__
 from src.config import get_settings
 from src.observability.logging import RequestContextMiddleware, configure_logging
+from src.routes.runs import router as runs_router
 
 
 @asynccontextmanager
@@ -121,6 +122,8 @@ def create_app() -> FastAPI:
     @app.get("/metrics", tags=["meta"], response_class=PlainTextResponse)
     async def metrics() -> PlainTextResponse:
         return PlainTextResponse(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+    app.include_router(runs_router)
 
     return app
 
