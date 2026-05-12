@@ -1,0 +1,143 @@
+[project]
+name = "rbc-research-api"
+version = "0.1.0"
+description = "Hierarchical multi-agent equity research synthesis platform."
+requires-python = ">=3.12,<3.13"
+license = { text = "MIT" }
+authors = [
+    { name = "Bharath Kumar Rajesh", email = "bharath.kr702@gmail.com" },
+]
+readme = "../../README.md"
+
+dependencies = [
+    "fastapi==0.115.5",
+    "uvicorn[standard]==0.32.1",
+    "pydantic==2.10.3",
+    "pydantic-settings==2.7.0",
+    "anthropic==0.40.0",
+    "langgraph==0.2.59",
+    "langchain-core==0.3.21",
+    "sqlalchemy==2.0.36",
+    "asyncpg==0.30.0",
+    "alembic==1.14.0",
+    "pgvector==0.3.6",
+    "redis==5.2.1",
+    "arq==0.26.3",
+    "httpx==0.28.1",
+    "tenacity==9.0.0",
+    "structlog==24.4.0",
+    "prometheus-client==0.21.1",
+    "langfuse==2.55.1",
+    "weasyprint==63.1",
+    "jinja2==3.1.4",
+    "yfinance==0.2.50",
+    "sec-edgar-downloader==5.0.3",
+    "sentence-transformers==3.3.1",
+    "datasketch==1.6.5",
+    "python-multipart==0.0.20",
+    "orjson==3.10.12",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.4",
+    "pytest-asyncio==0.24.0",
+    "pytest-cov==6.0.0",
+    "pytest-mock==3.14.0",
+    "vcrpy==6.0.2",
+    "httpx==0.28.1",
+    "ruff==0.8.3",
+    "black==24.10.0",
+    "mypy==1.13.0",
+    "types-redis==4.6.0.20241004",
+    "locust==2.32.5",
+    "respx==0.22.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["migrations", "tests/fixtures"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific
+    "S",   # bandit
+    "ASYNC",
+]
+ignore = [
+    "E501",   # line length handled by black
+    "S101",   # asserts allowed in tests
+    "B008",   # FastAPI Depends pattern
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = [
+    "yfinance.*",
+    "sec_edgar_downloader.*",
+    "datasketch.*",
+    "weasyprint.*",
+    "langfuse.*",
+    "pgvector.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra --strict-markers --strict-config"
+markers = [
+    "integration: integration tests using recorded fixtures",
+    "eval: evaluation harness tests",
+    "slow: tests that take more than a second",
+]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = ["src/main.py", "tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 80
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]

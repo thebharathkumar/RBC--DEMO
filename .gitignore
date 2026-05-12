@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.env
+.env.*
+!.env.example
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.egg-info/
+dist/
+build/
+.tox/
+.cache/
+
+# Node
+node_modules/
+.pnpm-store/
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.vite/
+dist/
+build/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Data and artifacts
+*.sqlite
+*.sqlite3
+*.db
+data/cache/
+data/raw/
+data/processed/
+*.pdf
+!docs/**/*.pdf
+
+# Secrets and local config
+.env.local
+.env.production
+secrets/
+
+# Logs
+*.log
+logs/
+
+# Local checkpoints
+checkpoints/
+.langgraph/
