@@ -1,8 +1,10 @@
+import type { ReactElement } from "react";
+
 /**
  * Application shell. Milestone 1 ships the layout primitives only; the live
  * trace and note views are wired in milestone 7.
  */
-export function Shell(): JSX.Element {
+export function Shell(): ReactElement {
   return (
     <div className="flex min-h-full flex-col">
       <header className="border-b border-ink-200 bg-white">

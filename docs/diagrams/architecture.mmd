@@ -1,0 +1,36 @@
+flowchart TB
+    classDef supervisor fill:#1f242c,stroke:#0f1318,color:#f6f7f8
+    classDef worker fill:#eceef1,stroke:#444c58,color:#0f1318
+    classDef gate fill:#fff7e6,stroke:#8c6a1f,color:#0f1318
+    classDef output fill:#f6f7f8,stroke:#0f1318,color:#0f1318
+
+    user["Analyst request<br/>(ticker, config)"]
+    sup["ResearchSupervisor<br/>plan, dispatch, retry, gate"]:::supervisor
+
+    subgraph workers [Parallel workers]
+        direction LR
+        filings["FilingsAnalyst<br/>EDGAR, pgvector"]:::worker
+        earnings["EarningsCallAnalyst<br/>transcripts"]:::worker
+        market["MarketDataAnalyst<br/>yfinance, Polygon"]:::worker
+        news["NewsAndSentimentAnalyst<br/>Tavily, NewsAPI"]:::worker
+        comps["ComparablesAnalyst<br/>peer table"]:::worker
+    end
+
+    synth["Synthesizer<br/>structured note draft"]:::worker
+    crit["CritiqueAgent<br/>red-team, blocking gate"]:::gate
+    pdf["PDF render +<br/>source registry"]:::output
+
+    user --> sup
+    sup --> filings
+    sup --> earnings
+    sup --> market
+    sup --> news
+    sup --> comps
+    filings --> synth
+    earnings --> synth
+    market --> synth
+    news --> synth
+    comps --> synth
+    synth --> crit
+    crit -- blocking findings (max 2 retries) --> synth
+    crit -- clear --> pdf

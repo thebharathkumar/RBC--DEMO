@@ -18,41 +18,46 @@ Demo walkthrough: pending.
 
 ## Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                     ResearchSupervisor (LangGraph)               │
-│  plans, dispatches, retries, gates on critique, finalises        │
-└────────┬──────────────┬──────────────┬──────────────┬────────────┘
-         │              │              │              │
-   ┌─────▼─────┐  ┌─────▼─────┐  ┌─────▼─────┐  ┌─────▼─────┐
-   │ Filings   │  │ Earnings  │  │ Market    │  │ News and  │
-   │ Analyst   │  │ Call      │  │ Data      │  │ Sentiment │
-   │ (EDGAR,   │  │ Analyst   │  │ Analyst   │  │ Analyst   │
-   │  pgvector)│  │           │  │           │  │           │
-   └─────┬─────┘  └─────┬─────┘  └─────┬─────┘  └─────┬─────┘
-         │              │              │              │
-         └──────────────┴──────────────┴──────────────┘
-                                │
-                       ┌────────▼────────┐
-                       │  Comparables    │
-                       │  Analyst        │
-                       └────────┬────────┘
-                                │
-                       ┌────────▼────────┐
-                       │  Synthesizer    │◄─────┐
-                       └────────┬────────┘      │
-                                │               │
-                       ┌────────▼────────┐      │
-                       │ CritiqueAgent   │──────┘ revise loop (max 2)
-                       └────────┬────────┘
-                                │
-                       ┌────────▼────────┐
-                       │ PDF render +    │
-                       │ source registry │
-                       └─────────────────┘
+```mermaid
+flowchart TB
+    classDef supervisor fill:#1f242c,stroke:#0f1318,color:#f6f7f8
+    classDef worker fill:#eceef1,stroke:#444c58,color:#0f1318
+    classDef gate fill:#fff7e6,stroke:#8c6a1f,color:#0f1318
+    classDef output fill:#f6f7f8,stroke:#0f1318,color:#0f1318
+
+    user["Analyst request<br/>(ticker, config)"]
+    sup["ResearchSupervisor<br/>plan, dispatch, retry, gate"]:::supervisor
+
+    subgraph workers [Parallel workers]
+        direction LR
+        filings["FilingsAnalyst<br/>EDGAR, pgvector"]:::worker
+        earnings["EarningsCallAnalyst<br/>transcripts"]:::worker
+        market["MarketDataAnalyst<br/>yfinance, Polygon"]:::worker
+        news["NewsAndSentimentAnalyst<br/>Tavily, NewsAPI"]:::worker
+        comps["ComparablesAnalyst<br/>peer table"]:::worker
+    end
+
+    synth["Synthesizer<br/>structured note draft"]:::worker
+    crit["CritiqueAgent<br/>red-team, blocking gate"]:::gate
+    pdf["PDF render +<br/>source registry"]:::output
+
+    user --> sup
+    sup --> filings
+    sup --> earnings
+    sup --> market
+    sup --> news
+    sup --> comps
+    filings --> synth
+    earnings --> synth
+    market --> synth
+    news --> synth
+    comps --> synth
+    synth --> crit
+    crit -- blocking findings, max 2 retries --> synth
+    crit -- clear --> pdf
 ```
 
-Detailed architecture, agent contracts, and design rationale live in `docs/`.
+Source for the diagram is checked in at `docs/diagrams/architecture.mmd`. Detailed architecture, agent contracts, and design rationale live in `docs/`.
 
 ## Agents
 
@@ -90,20 +95,25 @@ Versions are pinned in `apps/api/pyproject.toml` and `apps/web/package.json`.
 
 ## Local development
 
-Requirements: Docker, Docker Compose, Python 3.12, Node 20.
+Requirements: Docker, Docker Compose, Python 3.12, Node 20, pnpm 9.
 
 ```
 cp .env.example .env
-docker compose -f infra/docker-compose.yml up -d postgres redis
-cd apps/api && uv sync && uv run uvicorn src.main:app --reload
-cd apps/web && pnpm install && pnpm dev
+make install
+make up        # full stack via docker compose
+make test      # backend tests
+make lint      # ruff + eslint
+make typecheck # mypy + tsc
 ```
 
-End-to-end run via docker compose:
+Run the API or the web app standalone:
 
 ```
-docker compose -f infra/docker-compose.yml up --build
+cd apps/api && uvicorn src.main:app --reload
+cd apps/web && pnpm dev
 ```
+
+All available targets are documented via `make help`.
 
 ## Evaluation
 
